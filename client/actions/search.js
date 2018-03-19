@@ -2,7 +2,7 @@ export const getPlaylist = () => {
   console.log('getPlaylist')
   return async (dispatch, getState, {spotifyApi, socket}) => {
 
-    const data = await spotifyApi.getPlaylist('spotify', '37i9dQZF1DX0RJRF55W5lt')
+    const data = await spotifyApi.getPlaylist('spotifycharts', '37i9dQZEVXbLnolsZ8PSNw')
 
     dispatch({
       type: 'GET_PLAYLIST',

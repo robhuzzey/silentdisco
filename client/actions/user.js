@@ -10,6 +10,18 @@ export const getMe = () => {
         data
       })
 
+      // Add / get a user
+      fetch('/user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: data.body.id,
+          displayName: data.body.display_name
+        })
+      })
+
       socket.emit('userJoined', { name: data.body.display_name })
       
     }, err =>  {

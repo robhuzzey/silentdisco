@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 
 import { checkAccessToken } from '../actions/authenticate'
-import { play } from '../actions/player'
+import { play, seek } from '../actions/player'
 import { played } from '../actions/queued'
 
 const mapStateToProps = (state, ownProps) => {
@@ -21,7 +21,10 @@ const mapDispatchToProps = (dispatch, ownProps) => {
     },
     played: data => {
       dispatch(played(data))
-    }
+    },
+    seek: position => {
+      dispatch(seek(position))
+    },
   }
 }
 
@@ -58,7 +61,14 @@ class Authenticate extends Component {
       console.log("SOCKET PLAY", data)
       this.props.play(data)
       this.props.played(data.id)
+
+      console.log("POS", data.position)
+      this.props.seek(data.position)
     })
+
+    // this.props.socket.on('remainingTime', time => {
+    //   console.log("SOCKET REMAINING TIME", time)
+    // })
   }
 
   render() {
@@ -68,7 +78,7 @@ class Authenticate extends Component {
       )
     }
     return (
-      <div>
+      <div className="container">
         {this.props.children}
       </div>
     );

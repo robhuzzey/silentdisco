@@ -30,12 +30,20 @@ class Queued extends Component {
 
   render() {
     return (
-      <ul>
+      <div>
         {this.props.tracks.map((track, trackKey) => {
           const currentlyPlaying = track.spotifyId === this.props.currentlyPlaying
-          return <li key={trackKey}>{currentlyPlaying && <strong>X</strong>}<img width="20px" src={track.image} />{track.name}</li>
+          return (
+            <div className={`media ${currentlyPlaying ? 'currentlyPlaying' : ''}`} key={trackKey}>
+              <img width="30px" className="mr-3" src={track.image} alt="Generic placeholder image" />
+              <div className="media-body">
+                <h5 className="mt-0">{track.name}</h5>
+                addedby {track.user.displayName}
+              </div>
+            </div>
+          )
         })}
-      </ul>
+      </div>
     )
   }
 }

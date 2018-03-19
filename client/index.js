@@ -4,7 +4,24 @@ import { Provider } from 'react-redux'
 import { createStore, applyMiddleware, compose } from 'redux'
 import thunk from 'redux-thunk'
 import rootReducer from './reducers'
+
+// import SpotifyWebApi from 'spotify-web-api-node'
+
 import SpotifyWebApi from 'spotify-web-api-node'
+import AuthenticationRequest from 'spotify-web-api-node/src/authentication-request'
+import WebApiRequest from 'spotify-web-api-node/src/webapi-request'
+import HttpManager from 'spotify-web-api-node/src/http-manager'
+
+SpotifyWebApi.prototype["seek"] = function(options, callback) {
+  return WebApiRequest.builder(this.getAccessToken())
+  .withPath('/v1/me/player/seek')
+  .withHeaders({ 'Content-Type' : 'application/json' })
+  .withQueryParameters(options)
+  .build()
+  .execute(HttpManager.put, callback);
+}
+
+
 import openSocket from 'socket.io-client'
 
 import Authenticate from './containers/Authenticate'

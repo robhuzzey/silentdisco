@@ -9,3 +9,11 @@ export const play = data => {
     })
   }
 }
+
+export const seek = position => {
+  return (dispatch, getState, {spotifyApi, socket}) => {
+    spotifyApi.seek({
+      position_ms: position
+    })
+  }
+}
