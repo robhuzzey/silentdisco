@@ -38,7 +38,8 @@ class Search extends Component {
                   uri: track.uri,
                   previewUrl: track.preview_url,
                   image,
-                  userId: this.props.userId
+                  userId: this.props.userId,
+                  duration: track.duration_ms
                 })}>add</button></div>
               </li>
             )

@@ -61,7 +61,8 @@ const Track = sequelize.define('track', {
   uri: Sequelize.STRING,
   previewUrl: Sequelize.STRING,
   image: Sequelize.STRING,
-  played: Sequelize.BOOLEAN
+  played: Sequelize.BOOLEAN,
+  duration: Sequelize.INTEGER
 })
 
 Track.belongsTo(User, { foreignKey: 'addedBy' });
@@ -141,7 +142,8 @@ app.post('/track', jsonBodyParser, async (req, res) => {
     previewUrl: req.body.previewUrl,
     image: req.body.image,
     played: false,
-    addedBy: req.body.userId
+    addedBy: req.body.userId,
+    duration: req.body.duration
   })
 
   io.emit('trackAdded', { for: 'everyone' })
@@ -158,6 +160,7 @@ app.post('/played', jsonBodyParser, async (req, res) => {
       spotifyId: req.body.id
     }
   })
+
   res.json(track.toJSON())
 })
 
