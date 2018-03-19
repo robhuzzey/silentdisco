@@ -1,5 +1,13 @@
 
 
+// TODO:
+// Maybe make ONE client automatically the "DJ" - tag them on join & re-assign if they leave
+// this will mean that client decides when song ends & starts & is responsible for sending
+// time-signals out etc?
+
+
+
+
 const port = 3000;
 const app = require('express')()
 const server = require('http').createServer(app)
@@ -72,7 +80,7 @@ Like.belongsTo(User)
 Like.belongsTo(Track)
 
 
-const playTrack = async client => {
+const playTrack = async (clientId = null) => {
   console.log('PLAY TRACK!')
   const tracks = await Track.find({
     where: {
@@ -81,9 +89,15 @@ const playTrack = async client => {
     limit: 1
   })
 
-  io.to(client.id).emit('play', {
-    id: tracks.toJSON().spotifyId
-  })
+  if(clientId) {
+    io.to(clientId).emit('play', {
+      id: tracks.toJSON().spotifyId
+    })
+  } else {
+    io.emit('play', {
+      id: tracks.toJSON().spotifyId
+    })
+  }
 }
 
 
@@ -91,11 +105,11 @@ const playTrack = async client => {
 
 io.on('connection', (client) => {
 
-  playTrack(client)
-  setInterval(() => {
-    console.log('PLAY TRACK INTERVAL')
-    playTrack(client)
-  }, 20000)
+  playTrack(client.id)
+  // setInterval(() => {
+  //   console.log('PLAY TRACK INTERVAL')
+  //   playTrack(client.id)
+  // }, 20000)
 
   client.on('userJoined', data => {
     io.emit('userJoined', data)
@@ -153,6 +167,14 @@ app.post('/track', jsonBodyParser, async (req, res) => {
 })
 
 app.post('/played', jsonBodyParser, async (req, res) => {
+
+  const currentlyPlaying = await Track.find({
+    where: {
+      played: false
+    },
+    limit: 1
+  })
+
   const track = await Track.update({
     played: true
   }, {
@@ -160,6 +182,12 @@ app.post('/played', jsonBodyParser, async (req, res) => {
       spotifyId: req.body.id
     }
   })
+
+  const { duration } = currentlyPlaying.toJSON()
+  setTimeout(() => {
+    console.log("TIMEOUT")
+    playTrack()
+  }, duration)
 
   res.json(track.toJSON())
 })
