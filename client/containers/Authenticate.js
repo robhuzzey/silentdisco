@@ -57,13 +57,13 @@ class Authenticate extends Component {
       console.log("SOCKET HELLO", data)
     })
 
-    this.props.socket.on('play', data => {
-      console.log("SOCKET PLAY", data)
+    this.props.socket.on('trackPosition', data => {
+      console.log("SOCKET trackPosition", data)
       this.props.play(data)
-      this.props.played(data.id)
+      // this.props.played(data.id)
 
-      console.log("POS", data.position)
-      this.props.seek(data.position)
+      // console.log("POS", data.position)
+      // this.props.seek(data.position)
     })
 
     // this.props.socket.on('remainingTime', time => {

@@ -80,32 +80,10 @@ const Like = sequelize.define('like')
 Like.belongsTo(User)
 Like.belongsTo(Track)
 
-// let timeoutInstance = null
+
+// Event emitters
+
 let intervalInstance = null
-let trackPosition = 0
-let trackDuration = 0
-
-const playTrack = async (clientId = null) => {
-  console.log('PLAY TRACK!')
-  const tracks = await Track.find({
-    where: {
-      played: false
-    },
-    limit: 1
-  })
-
-  if(clientId) {
-    io.to(clientId).emit('play', {
-      id: tracks.toJSON().spotifyId,
-      position: trackPosition
-    })
-  } else {
-    io.emit('play', {
-      id: tracks.toJSON().spotifyId
-    })
-  }
-}
-
 const queueTrack = async () => {
   const currentlyPlaying = await Track.find({
     where: {
@@ -114,7 +92,7 @@ const queueTrack = async () => {
     limit: 1
   })
 
-  const { duration, spotifyId } = currentlyPlaying.toJSON()
+  let { duration, spotifyId } = currentlyPlaying.toJSON()
 
   const track = await Track.update({
     played: true
@@ -124,37 +102,19 @@ const queueTrack = async () => {
     }
   })
 
-  const nextTrack = await Track.find({
-    where: {
-      played: false
-    },
-    limit: 1
-  })
-
-  io.emit('play', {
-    id: nextTrack.toJSON().spotifyId
-  })
-
-  // timeoutInstance = setTimeout(queueTrack, duration)
-  trackDuration = duration
-  trackPosition = 0
+  let trackPosition = 0
   const intervalTime = 1000
   intervalInstance = setInterval(() => {
     trackPosition = trackPosition + intervalTime
-
-    console.log("Track position", trackPosition, trackDuration)
-    if(trackPosition >= trackDuration) {
+    console.log(trackPosition, duration)
+    if(trackPosition >= duration) {
       queueTrack()
     }
-    // remainingTrackTime = remainingTrackTime - intervalTime
-    // io.emit('remainingTime', remainingTrackTime)
+
+    io.emit('trackPosition', { trackPosition, spotifyId, duration })
+
   }, intervalTime)
 }
-
-queueTrack()
-
-
-
 
 //=== IO Listeners
 
@@ -162,19 +122,16 @@ io.on('connection', (client) => {
 
   console.log("CONNECTED CLIENTS", io.engine.clientsCount)
 
-  playTrack(client.id)
-
   client.on('userJoined', data => {
+    if(io.engine.clientsCount === 1) {
+      queueTrack()
+    }
     io.emit('userJoined', data)
-  });
-
-  client.on('play', data => {
-    io.emit('play', data)
   });
 
   client.on('disconnect', data => {
     if(io.engine.clientsCount === 0) {
-      // clearTimeout(timeoutInstance)
+      clearInterval(intervalInstance)
     }
   });
 });
@@ -197,12 +154,6 @@ const getUnplayedTracks = async () => {
 app.get("/", (req, res) => {
   res.sendFile(__dirname + '/client/index.html');
 });
-
-app.get('/currentTrack', async (req, res) => {
-  res.json({
-    trackPosition
-  })
-})
 
 app.post('/user', jsonBodyParser, async (req, res) => {
   const [ user, createdUser ] = await User.findOrCreate({
@@ -233,28 +184,6 @@ app.post('/track', jsonBodyParser, async (req, res) => {
 })
 
 app.post('/played', jsonBodyParser, async (req, res) => {
-
-  // const currentlyPlaying = await Track.find({
-  //   where: {
-  //     played: false
-  //   },
-  //   limit: 1
-  // })
-
-  // const track = await Track.update({
-  //   played: true
-  // }, {
-  //   where: {
-  //     spotifyId: req.body.id
-  //   }
-  // })
-
-  // const { duration } = currentlyPlaying.toJSON()
-  // setTimeout(() => {
-  //   console.log("TIMEOUT")
-  //   playTrack()
-  // }, duration)
-
   res.json(track.toJSON())
 })
 
